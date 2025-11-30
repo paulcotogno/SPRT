@@ -1,0 +1,8 @@
+{
+  "watch": ["src", "generated"],
+  "ext": "ts,js,json",
+  "ignore": ["node_modules", "dist", "src-tauri", ".prisma"],
+  "execMap": {
+    "ts": "node --loader ts-node/esm"
+  }
+}
