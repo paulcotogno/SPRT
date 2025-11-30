@@ -39,7 +39,7 @@ export const SyncPullData = async (userId: string, deviceId: string) => {
   const exercises = await prisma.exercise.findMany({
     where: {
       AND: [
-        { updated_at: device.last_synced_at },
+        { updated_at: { gt: device.last_synced_at } },
         { cycle: { session: { user_id: userId } } }
       ]
     }
