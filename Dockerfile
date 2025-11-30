@@ -4,19 +4,19 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
 
-COPY . /app
+ENV CI=true
+
+COPY package.json /app/
 
 WORKDIR /app
 
-FROM base AS prod-deps
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+COPY . /app
+COPY private_key.pem /app
 
-FROM base AS build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-RUN pnpm run build
+RUN apt-get update -y && apt-get install -y openssl
 
-FROM base
-COPY --from=prod-deps /app/node_modules /app/node_modules
-COPY --from=build /app/dist /app/dist
+RUN pnpm install
+RUN pnpm build
+
 EXPOSE 3000
-CMD ["pnpm", "start"]
+CMD ["pnpm", "launch"]
