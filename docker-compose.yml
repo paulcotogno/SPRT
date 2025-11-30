@@ -12,7 +12,7 @@ services:
     #    tmpfs:
     #      size: 134217728 # 128*2^20 bytes = 128Mb
     ports:
-      - 5432:5432
+      - 8889:5432
     networks:
       - prisma-network
     healthcheck:
@@ -27,14 +27,19 @@ services:
     image: adminer
     restart: always
     ports:
-      - 8080:8080
+      - 8888:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - prisma-network
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 3000:3000
+      - 8887:3000
     depends_on:
       db:
         condition: service_healthy
