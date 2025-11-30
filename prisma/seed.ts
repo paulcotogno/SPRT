@@ -22,22 +22,43 @@ const sports = [
 ]
 
 async function main() {
-  console.log('seeding');
-
-  // Create SportTypes
-  const sportTypesDb = await prisma.sportType.createManyAndReturn({
+  await prisma.sportType.createMany({
     data: sportTypes.map((st) => ({
       name: st
-    }))
-  })
+    })),
+    skipDuplicates: true
+  });
 
-  // Create Base Sport
-  await prisma.sport.createMany({
-    data: sports.map((sport) => ({
+  const allSportTypes = await prisma.sportType.findMany({
+    select: {
+      id: true,
+      name: true
+    },
+    where: {
+      name: {
+        in: sportTypes
+      }
+    }
+  });
+
+  const sportToCreates = sports.map((sport) => {
+    const typeRecord = allSportTypes.find(st => st.name === sport.type);
+
+    if (!typeRecord) {
+      console.error(`Erreur de seeding: Type de sport '${sport.type}' non trouvé.`);
+      return undefined;
+    }
+
+    return {
       name: sport.name,
-      type_id: sportTypesDb.find(st => st.name === sport.type)!.id
-    }))
-  })
+      type_id: typeRecord.id
+    };
+  }).filter((sport) => sport !== undefined)
+
+  await prisma.sport.createMany({
+    data: sportToCreates,
+    skipDuplicates: true
+  });
 }
 main()
   .then(async () => {
