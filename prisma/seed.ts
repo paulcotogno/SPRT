@@ -1,30 +1,29 @@
 import { prisma } from '../src/lib/prisma';
+import fs from 'fs';
 
-const sportTypes = ['REP', 'TIME'];
-
-const sports = [
-  {
-    name: 'pompes',
-    type: sportTypes[0]
-  },
-  {
-    name: 'crunchs',
-    type: sportTypes[0]
-  },
-  {
-    name: 'squats',
-    type: sportTypes[0]
-  },
-  {
-    name: 'plank',
-    type: sportTypes[1]
-  }
-]
+const categoryName = {
+  "UB": "Force et Résistance du Haut du Corps (Bras, Épaules, Dos, Poitrine)",
+  "LB": "Force et Résistance du Bas du Corps (Jambes, Fessiers, Mollets)",
+  "CR": "Abdominaux et Sangle Abdominale",
+  "CD": "Exercices Cardiovasculaires et Plyométrie",
+  "MB": "Étirements, Yoga et Mobilité",
+  "CP": "Exercices Complexes ou avec Équipement"
+}
 
 async function main() {
+  const sports: { name: string, type: string, category: string }[] = JSON.parse(fs.readFileSync('./prisma/seeding_data.json', 'utf8'))
+
+  const types: { name: string }[] = [];
+
+  sports.forEach((sport) => {
+    if(types.find((type) => type.name === sport.type)) return;
+
+    types.push({ name: sport.type })
+  })
+
   await prisma.sportType.createMany({
-    data: sportTypes.map((st) => ({
-      name: st
+    data: types.map((st) => ({
+      name: st.name
     })),
     skipDuplicates: true
   });
@@ -36,7 +35,7 @@ async function main() {
     },
     where: {
       name: {
-        in: sportTypes
+        in: types.map((type) => type.name)
       }
     }
   });

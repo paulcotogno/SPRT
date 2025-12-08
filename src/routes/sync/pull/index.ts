@@ -45,11 +45,30 @@ export const SyncPullData = async (userId: string, deviceId: string) => {
     }
   })
 
+  const sportsUserRes = await prisma.sportUser.findMany({
+    where: {
+      AND: [
+        { updated_at: { gt: device.last_synced_at } },
+        { device_id: deviceId }
+      ]
+    }
+  })
+
+  const sportsUser = sportsUserRes.map((sportUser) => ({
+    id: sportUser.id,
+    user_id: userId,
+    sport_id: sportUser.sport_id,
+    order_index: sportUser.order_index,
+    updated_at: sportUser.updated_at,
+    is_deleted: sportUser.is_deleted
+  }))
+
   return {
     sportTypes,
     sports,
     sessions,
     cycles,
-    exercises
+    exercises,
+    sportsUser
   };
 }

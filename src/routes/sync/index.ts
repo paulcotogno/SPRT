@@ -37,10 +37,19 @@ const exerciseZod = z.object({
   is_deleted: z.boolean()
 })
 
+const sportsUserZod = z.object({
+  id: z.string(),
+  sport_id: z.string(),
+  order_index: z.number(),
+  updated_at: z.string(),
+  is_deleted: z.boolean()
+})
+
 const SyncBodySchema = z.object({
   sessions: z.array(sessionZod),
   cycles: z.array(cycleZod),
-  exercises: z.array(exerciseZod)
+  exercises: z.array(exerciseZod),
+  sportsUser: z.array(sportsUserZod)
 })
 
 const Sync = (fastify: FastifyZod) => {
@@ -49,11 +58,13 @@ const Sync = (fastify: FastifyZod) => {
 
     if (!userId || !deviceId) throw Error('Invalid TOKEN');
 
-    const { sessions, cycles, exercises } = request.body;
+    const { sessions, cycles, exercises, sportsUser } = request.body;
+
+    console.log('[SYNCED]', sportsUser)
 
     const data = await SyncPullData(userId, deviceId);
 
-    await updateAllPushData({ sessions, cycles, exercises });
+    await updateAllPushData({ sessions, cycles, exercises, sportsUser }, deviceId);
 
     return data;
   })
@@ -64,8 +75,6 @@ const Sync = (fastify: FastifyZod) => {
     if (!userId || !deviceId) throw Error('token invalid')
 
     const { synced_date } = request.body;
-
-    console.log(synced_date);
 
     try {
       await prisma.userDevice.update({ where: { id: deviceId }, data: { last_synced_at: synced_date } })
