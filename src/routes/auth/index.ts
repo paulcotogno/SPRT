@@ -16,10 +16,8 @@ const AuthRegister = (fastify: FastifyZod): void => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({ data: { name, password: passwordHash } })
-    
-    const getIfOtherDevice = await prisma.userDevice.findMany({ where: { user_id: user.id }, orderBy: { last_synced_at: "desc" }, include: { sportsUser: true } })
 
-    const device = await prisma.userDevice.create({ data: { last_synced_at: new Date(2000, 1, 1), name: 'Ouai', user_id: user.id, sportsUser: { connect: getIfOtherDevice[0].sportsUser.map((sportUser) => ({ id: sportUser.id })) } } })
+    const device = await prisma.userDevice.create({ data: { last_synced_at: new Date(2000, 1, 1), name: 'Ouai', user_id: user.id } })
 
     //SIGNING
     const jwt = signJWT({ userId: user.id, deviceId: device.id });
